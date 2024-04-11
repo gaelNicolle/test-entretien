@@ -25,6 +25,13 @@
           <p class="text-base font-semibold">Aucune réponse</p>
         </div>
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" @click="$router.push(`/depots/${depot.id}`)">Répondre à la demande</button>
+        <button v-if="depot.reponses.length" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" 
+          :class="{
+            'cursor-not-allowed': !selected,
+          }"
+          :disabled="!selected"
+          v-on:click="valideReponse" 
+        >Valide réponse</button>
       </div>
     </div>
   </div>
@@ -36,6 +43,11 @@ import { getLabel } from '@/enum/demande_clinique/reponse/type';
 
 export default {
   name: 'Index',
+  data: function () {
+    return {
+      selected: false,
+    };
+  },
   computed: {
     ...mapGetters({
       depots: 'demande_clinique/depots',
@@ -43,6 +55,9 @@ export default {
   },
   methods: {
     getTypeLabel: getLabel,
+    valideReponse: function (event) {
+      console.log('mon click');
+    }
   }
 };
 </script>
