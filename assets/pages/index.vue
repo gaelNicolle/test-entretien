@@ -14,7 +14,7 @@
         <p class="text-base font-semibold">Description: <span class="text-base text-gray-700 font-light">{{ depot.description }}</span></p>
         <p class="text-base font-semibold">Date de création: <span class="text-base text-gray-700 font-light">{{ depot.date_creation }}</span></p>
         <div class="my-4 p-2 border border-gray rounded-xl bg-gray-100 flex flex-col gap-2" v-if="depot.reponses.length">
-          <div class="border border-dashed border-2 bg-white px-4 py-2" v-for="reponse in depot.reponses" :key="reponse.id">
+          <div :id="'reponse-' + depot.id + '-' + reponse.id" class="border border-dashed border-2 bg-white px-4 py-2" v-for="reponse in depot.reponses" :key="reponse.id" v-on:click="selectResponse(depot.id, reponse.id)">
             <p class="text-base font-semibold text-red-500">Type: <span class="text-base text-gray-700 font-light">{{ getTypeLabel(reponse.type) }}</span></p>
             <p class="text-base font-semibold">Titre: <span class="text-base text-gray-700 font-light">{{ reponse.titre }}</span></p>
             <p class="text-base font-semibold">Description: <span class="text-base text-gray-700 font-light">{{ reponse.description }}</span></p>
@@ -27,11 +27,20 @@
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" @click="$router.push(`/depots/${depot.id}`)">Répondre à la demande</button>
         <button v-if="depot.reponses.length" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" 
           :class="{
-            'cursor-not-allowed': !selected,
+            'cursor-not-allowed': !atleastOneSelected(depot.id),
           }"
-          :disabled="!selected"
-          v-on:click="valideReponse" 
+          :disabled = !atleastOneSelected(depot.id)
+          v-on:click="valideReponse(depot.id)" 
         >Valide réponse</button>
+      </div>
+      <div v-show="showMotif" id="wrapperMotif" class="bg-white rounded-xl shadow-sm p-4 selected">
+        <div class="flex items-center justify-center" >
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+              Motif de validation
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="motifValid" type="text" placeholder="Veuillez saisir un motif de validation">
+        </div>
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" v-on:click="valideMotifReponse" >Enregistrement motif</button>
       </div>
     </div>
   </div>
@@ -45,7 +54,9 @@ export default {
   name: 'Index',
   data: function () {
     return {
-      selected: false,
+      elmSelect: [],
+      showMotif: false,
+      currentQuestion: null,
     };
   },
   computed: {
@@ -55,8 +66,40 @@ export default {
   },
   methods: {
     getTypeLabel: getLabel,
-    valideReponse: function (event) {
-      console.log('mon click');
+    valideReponse: function (idQuestion) {
+      this.showMotif = true;
+      this.currentQuestion = idQuestion;
+      this.$nextTick(() => {
+        document.getElementById("wrapperMotif").scrollIntoView();
+      });
+
+    }, 
+    selectResponse: function (idQuestion, idReponse) {
+      if (!this.elmSelect[idQuestion]) {
+        this.$set(this.elmSelect, idQuestion, []);
+      }
+
+      let blocReponse = document.getElementById('reponse-' + idQuestion + '-' + idReponse);
+      let index = this.elmSelect[idQuestion].indexOf(idReponse);
+      if (index > -1) {
+        //il y a un element
+        this.elmSelect[idQuestion].splice(index, 1);
+        blocReponse.classList.remove("selected");
+      } else {
+        this.elmSelect[idQuestion].push(idReponse);
+        blocReponse.classList.add("selected");
+      }
+    }, 
+    atleastOneSelected: function (idDepot) {
+      if (this.elmSelect[idDepot] && Array.isArray(this.elmSelect[idDepot])) {
+        return this.elmSelect[idDepot].length > 0;
+      }
+      
+      return false;
+    },
+    valideMotifReponse: function () {
+      let motif =  document.getElementById('motifValid').value;
+      console.log('motif de validation ->',motif);
     }
   }
 };
