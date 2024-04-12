@@ -43,6 +43,16 @@ class Reponse
      */
     private $type;
 
+    /**
+     * @ORM\Column(type="text")
+     */
+    private $motif;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $valide;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -104,6 +114,30 @@ class Reponse
     public function setType(int $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getMotif(): ?string
+    {
+        return $this->motif;
+    }
+
+    public function setMotif(string $motif): self
+    {
+        $this->motif = $motif;
+
+        return $this;
+    }
+
+    public function getValide(): ?int
+    {
+        return $this->valide;
+    }
+
+    public function setValide(int $valide): self
+    {
+        $this->valide = $valide;
 
         return $this;
     }

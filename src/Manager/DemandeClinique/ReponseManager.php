@@ -37,4 +37,16 @@ class ReponseManager
 
         return $reponse;
     }
+
+    public function valider(Reponse $reponse, string $motif): Reponse
+    {
+        $reponse = $this->reponseFactory->valider($reponse, $motif);
+
+        $this->reponseValidator->valider($reponse);
+
+        $this->entityManagerInterface->persist($reponse);
+        $this->entityManagerInterface->flush();
+
+        return $reponse;
+    }
 }

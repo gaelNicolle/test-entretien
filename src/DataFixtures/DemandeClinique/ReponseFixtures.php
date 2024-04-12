@@ -19,6 +19,8 @@ class ReponseFixtures extends Fixture implements DependentFixtureInterface
             $reponse->setDateCreation($date);
             $reponse->setDepot($this->getReference('depot_'.$depot));
             $reponse->setType($type);
+            $reponse->setMotif('');
+            $reponse->setValide(0);
             $manager->persist($reponse);
         }
 

@@ -14,11 +14,17 @@
         <p class="text-base font-semibold">Description: <span class="text-base text-gray-700 font-light">{{ depot.description }}</span></p>
         <p class="text-base font-semibold">Date de création: <span class="text-base text-gray-700 font-light">{{ depot.date_creation }}</span></p>
         <div class="my-4 p-2 border border-gray rounded-xl bg-gray-100 flex flex-col gap-2" v-if="depot.reponses.length">
-          <div :id="'reponse-' + depot.id + '-' + reponse.id" class="border border-dashed border-2 bg-white px-4 py-2" v-for="reponse in depot.reponses" :key="reponse.id" v-on:click="selectResponse(depot.id, reponse.id)">
+          <div :id="'reponse-' + depot.id + '-' + reponse.id" class="border  border-2 bg-white px-4 py-2" 
+            :class="{
+              'border-green-600': reponse.valide,
+              'border-dashed': !reponse.valide,
+            }"  
+            v-for="reponse in depot.reponses" :key="reponse.id" v-on:click="selectResponse(depot.id, reponse.id, reponse.valide)">
             <p class="text-base font-semibold text-red-500">Type: <span class="text-base text-gray-700 font-light">{{ getTypeLabel(reponse.type) }}</span></p>
             <p class="text-base font-semibold">Titre: <span class="text-base text-gray-700 font-light">{{ reponse.titre }}</span></p>
             <p class="text-base font-semibold">Description: <span class="text-base text-gray-700 font-light">{{ reponse.description }}</span></p>
             <p class="text-base font-semibold">Date de création: <span class="text-base text-gray-700 font-light">{{ reponse.date_creation }}</span></p>
+            <p v-if="reponse.valide" class="text-base font-bold"><span class="text-green-500">Reponse Validée</span></p>
           </div>
         </div>
         <div class="flex items-center justify-center" v-else>
@@ -47,8 +53,9 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import { getLabel } from '@/enum/demande_clinique/reponse/type';
+import api from '@/api';
 
 export default {
   name: 'Index',
@@ -65,6 +72,9 @@ export default {
     }),
   },
   methods: {
+    ...mapActions({
+      chargerDepots: 'demande_clinique/chargerDepots',
+    }),
     getTypeLabel: getLabel,
     valideReponse: function (idQuestion) {
       this.showMotif = true;
@@ -74,20 +84,22 @@ export default {
       });
 
     }, 
-    selectResponse: function (idQuestion, idReponse) {
-      if (!this.elmSelect[idQuestion]) {
-        this.$set(this.elmSelect, idQuestion, []);
-      }
+    selectResponse: function (idQuestion, idReponse, isValide) {
+      if (!isValide) {
+        if (!this.elmSelect[idQuestion]) {
+          this.$set(this.elmSelect, idQuestion, []);
+        }
 
-      let blocReponse = document.getElementById('reponse-' + idQuestion + '-' + idReponse);
-      let index = this.elmSelect[idQuestion].indexOf(idReponse);
-      if (index > -1) {
-        //il y a un element
-        this.elmSelect[idQuestion].splice(index, 1);
-        blocReponse.classList.remove("selected");
-      } else {
-        this.elmSelect[idQuestion].push(idReponse);
-        blocReponse.classList.add("selected");
+        let blocReponse = document.getElementById('reponse-' + idQuestion + '-' + idReponse);
+        let index = this.elmSelect[idQuestion].indexOf(idReponse);
+        if (index > -1) {
+          //il y a un element
+          this.elmSelect[idQuestion].splice(index, 1);
+          blocReponse.classList.remove("selected");
+        } else {
+          this.elmSelect[idQuestion].push(idReponse);
+          blocReponse.classList.add("selected");
+        }
       }
     }, 
     atleastOneSelected: function (idDepot) {
@@ -97,10 +109,25 @@ export default {
       
       return false;
     },
-    valideMotifReponse: function () {
+    valideMotifReponse: async function () {
       let motif =  document.getElementById('motifValid').value;
-      console.log('motif de validation ->',motif);
-    }
+      
+      if ( !motif ) {
+        window.alert('Veuillez remplir tous les champs');
+        return;
+      }
+
+      try {
+        await api.demande_clinique.reponses.validerReponse(this.elmSelect[this.currentQuestion], motif);
+        await this.chargerDepots();
+        this.elmSelect = [];
+        this.showMotif = false;
+        this.currentQuestion = null;
+      } catch (e) {
+        console.error(e);
+        window.alert('Une erreur est survenue');
+      }
+    }, 
   }
 };
 </script>

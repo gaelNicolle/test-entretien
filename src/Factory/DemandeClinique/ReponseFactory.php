@@ -15,6 +15,18 @@ class ReponseFactory
             ->setDateCreation(new \DateTime())
             ->setDepot($depot)
             ->setType($type)
+            ->setMotif('')
+            ->setValide(0)
         ;
+    }
+
+    public function valider(Reponse $reponse, string $motif): Reponse
+    {
+        if (isset($motif)) {
+            $reponse->setMotif($motif);
+            $reponse->setValide(true); 
+        }
+       
+        return $reponse;
     }
 }
